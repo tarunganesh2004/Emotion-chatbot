@@ -44,6 +44,19 @@ def detect_emotion_route():
         return jsonify({"error": "Emotion detection failed"}), 400
 
 
+@app.route("/emotion_response", methods=["POST"])
+def emotion_response():
+    try:
+        emotion = request.json["emotion"]
+        user_id = request.json.get("user_id", "anonymous")
+        response = chatbot.generate_emotion_response(emotion)
+        db_handler.log_chat(user_id, "", response, emotion, datetime.now())
+        return jsonify({"response": response})
+    except Exception as e:
+        logger.error(f"Emotion response error: {str(e)}")
+        return jsonify({"error": "Failed to generate emotion response"}), 400
+
+
 @app.route("/chat", methods=["POST"])
 def chat():
     try:
