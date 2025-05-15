@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <h2>Webcam Feed</h2>
+        <video id="webcam" class="img-fluid rounded" autoplay></video>
+        <canvas id="canvas" style="display:none;"></canvas>
+        <div class="alert alert-info mt-3" id="emotion">Feeling: Neutral</div>
+    </div>
+    <div class="col-md-6">
+        <h2>Chat</h2>
+        <div id="chat" class="border rounded p-3 mb-3" style="height:300px; overflow-y:auto;"></div>
+        <div class="input-group">
+            <input type="text" id="message" class="form-control" placeholder="Type a message...">
+            <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-12">
+        <h2>Emotion Trends (Last 7 Days)</h2>
+        <canvas id="emotionChart"></canvas>
+    </div>
+</div>
+{% endblock %}
