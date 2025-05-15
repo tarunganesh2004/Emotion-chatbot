@@ -1,0 +1,9 @@
+Flask
+opencv-python
+deepface
+transformers
+torch
+numpy
+SQLAlchemy
+python-dateutil
+gunicorn
