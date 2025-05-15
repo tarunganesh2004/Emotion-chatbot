@@ -1,0 +1,22 @@
+body {
+    background-color: #f8f9fa;
+}
+#webcam, #canvas {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+}
+#chat {
+    background-color: white;
+}
+#chat p {
+    margin: 0.5rem 0;
+}
+#chat .user {
+    text-align: right;
+    color: #007bff;
+}
+#chat .bot {
+    text-align: left;
+    color: #28a745;
+}
