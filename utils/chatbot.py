@@ -53,6 +53,7 @@ class Chatbot:
 
     def generate_response(self, user_input, emotion="neutral"):
         try:
+            # Combine emotion context with user input
             prompt = (
                 self.emotion_prompts.get(emotion, self.emotion_prompts["neutral"])
                 + user_input
@@ -66,7 +67,11 @@ class Chatbot:
             response = self.tokenizer.decode(
                 outputs[:, inputs.shape[-1] :][0], skip_special_tokens=True
             )
-            return response.strip()
+            # Add emotion-reducing message after the main response
+            reducer = random.choice(
+                self.emotion_reducers.get(emotion, self.emotion_reducers["neutral"])
+            )
+            return f"{response.strip()} {reducer}"
         except Exception as e:
             logger.error(f"Chatbot response generation failed: {str(e)}")
             return "Sorry, I'm having trouble responding right now. Let's try again!"

@@ -7,15 +7,17 @@ import logging
 logger = logging.getLogger(__name__)
 Base = declarative_base()
 
+
 class EmotionLog(Base):
-    __tablename__ = 'emotion_logs'
+    __tablename__ = "emotion_logs"
     id = Column(Integer, primary_key=True)
     user_id = Column(String)
     emotion = Column(String)
     timestamp = Column(DateTime)
 
+
 class ChatLog(Base):
-    __tablename__ = 'chat_logs'
+    __tablename__ = "chat_logs"
     id = Column(Integer, primary_key=True)
     user_id = Column(String)
     user_message = Column(String)
@@ -23,9 +25,10 @@ class ChatLog(Base):
     emotion = Column(String)
     timestamp = Column(DateTime)
 
+
 class DBHandler:
     def __init__(self, db_path):
-        self.engine = create_engine(f'sqlite:///{db_path}')
+        self.engine = create_engine(f"sqlite:///{db_path}")
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
 
@@ -35,7 +38,7 @@ class DBHandler:
             log = EmotionLog(user_id=user_id, emotion=emotion, timestamp=timestamp)
             session.add(log)
             session.commit()
-        # # Reference: https://medium.com/@pankajkumargupta/build-a-real-time-face-emotion-detection-system-with-python-opencv-and-deepface-a-step-by-step-d4c9370f769b
+            logger.info(f"Logged emotion: {emotion} for user: {user_id}")
         except Exception as e:
             logger.error(f"Error logging emotion: {str(e)}")
             session.rollback()
@@ -45,10 +48,16 @@ class DBHandler:
     def log_chat(self, user_id, user_message, bot_response, emotion, timestamp):
         session = self.Session()
         try:
-            log = ChatLog(user_id=user_id, user_message=user_message, bot_response=bot_response,
-                         emotion=emotion, timestamp=timestamp)
+            log = ChatLog(
+                user_id=user_id,
+                user_message=user_message,
+                bot_response=bot_response,
+                emotion=emotion,
+                timestamp=timestamp,
+            )
             session.add(log)
             session.commit()
+            logger.info(f"Logged chat: {user_message} -> {bot_response}")
         except Exception as e:
             logger.error(f"Error logging chat: {str(e)}")
             session.rollback()
@@ -59,16 +68,23 @@ class DBHandler:
         session = self.Session()
         try:
             week_ago = datetime.now() - timedelta(days=7)
-            stats = session.query(EmotionLog.emotion, func.count(EmotionLog.emotion))\
-                          .filter(EmotionLog.user_id == user_id, EmotionLog.timestamp >= week_ago)\
-                          .group_by(EmotionLog.emotion).all()
+            stats = (
+                session.query(EmotionLog.emotion, func.count(EmotionLog.emotion))
+                .filter(EmotionLog.user_id == user_id, EmotionLog.timestamp >= week_ago)
+                .group_by(EmotionLog.emotion)
+                .all()
+            )
             total = sum(count for _, count in stats)
             if total == 0:
-                return {'labels': [], 'data': []}
-            labels, data = zip(*[(emotion, (count/total)*100) for emotion, count in stats])
-            return {'labels': list(labels), 'data': list(data)}
+                logger.warning(f"No emotion data for user: {user_id}")
+                return {"labels": [], "data": []}
+            labels, data = zip(
+                *[(emotion, (count / total) * 100) for emotion, count in stats]
+            )
+            logger.info(f"Emotion stats for user {user_id}: {labels}, {data}")
+            return {"labels": list(labels), "data": list(data)}
         except Exception as e:
             logger.error(f"Error fetching emotion stats: {str(e)}")
-            return {'labels': [], 'data': []}
+            return {"labels": [], "data": []}
         finally:
             session.close()

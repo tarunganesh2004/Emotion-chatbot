@@ -17,7 +17,7 @@ navigator.mediaDevices.getUserMedia({ video: true })
 // Capture and detect emotion
 async function captureFrame() {
     try {
-        video.style.filter = 'brightness(1.5) contrast(1.2)'; // Adjust brightness
+        video.style.filter = 'brightness(2.0) contrast(1.5)'; // Increase brightness and contrast
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         let imgData = canvas.toDataURL('image/jpeg');
         let response = await fetch('/detect_emotion', {
@@ -34,10 +34,11 @@ async function captureFrame() {
                 await fetchEmotionResponse(currentEmotion);
                 previousEmotion = currentEmotion;
             }
-            updateEmotionChart();
+            await updateEmotionChart(); // Ensure chart updates after emotion detection
         }
     } catch (err) {
         console.error('Emotion detection failed:', err);
+        emotionDisplay.textContent = 'Feeling: Error';
     }
 }
 
@@ -53,6 +54,8 @@ async function fetchEmotionResponse(emotion) {
         if (data.response) {
             chatWindow.innerHTML += `<p class="bot"><b>Bot:</b> ${data.response}</p>`;
             chatWindow.scrollTop = chatWindow.scrollHeight;
+        } else {
+            console.error('No response from /emotion_response');
         }
     } catch (err) {
         console.error('Emotion response failed:', err);
@@ -79,6 +82,8 @@ async function sendMessage() {
         if (data.response) {
             chatWindow.innerHTML += `<p class="bot"><b>Bot:</b> ${data.response}</p>`;
             chatWindow.scrollTop = chatWindow.scrollHeight;
+        } else {
+            console.error('No response from /chat');
         }
     } catch (err) {
         console.error('Chat failed:', err);
@@ -117,10 +122,14 @@ let emotionChart = new Chart(document.getElementById('emotionChart'), {
 async function updateEmotionChart() {
     try {
         let response = await fetch(`/emotion_stats?user_id=${userId}`);
-        let stats = await response.json();
-        emotionChart.data.labels = stats.labels;
-        emotionChart.data.datasets[0].data = stats.data;
-        emotionChart.update();
+        let data = await response.json();
+        if (data.labels && data.data) {
+            emotionChart.data.labels = data.labels;
+            emotionChart.data.datasets[0].data = data.data;
+            emotionChart.update();
+        } else {
+            console.error('No data for emotion chart');
+        }
     } catch (err) {
         console.error('Failed to update emotion chart:', err);
     }

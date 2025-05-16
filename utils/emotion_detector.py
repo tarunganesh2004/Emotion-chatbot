@@ -1,5 +1,5 @@
 import cv2
-from deepface import DeepFace
+from fer import FER
 import logging
 
 logger = logging.getLogger(__name__)
@@ -7,8 +7,13 @@ logger = logging.getLogger(__name__)
 
 def detect_emotion(image):
     try:
-        result = DeepFace.analyze(image, actions=["emotion"], enforce_detection=False)
-        return result[0]["dominant_emotion"].lower()
+        detector = FER(mtcnn=True)
+        result = detector.detect_emotions(image)
+        if result:
+            emotions = result[0]["emotions"]
+            dominant_emotion = max(emotions, key=emotions.get)
+            return dominant_emotion.lower()
+        return "neutral"
     except Exception as e:
         logger.warning(f"Emotion detection failed: {str(e)}. Defaulting to neutral.")
         return "neutral"
